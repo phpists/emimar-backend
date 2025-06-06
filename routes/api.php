@@ -18,5 +18,7 @@ Route::group(['prefix' => 'auth'], function () {
 Route::group(['prefix' => 'user', 'middleware' => 'auth:api'], function () {
     Route::get('get-users', [UserController::class, 'getUsers']);
     Route::post('create-user', [UserController::class, 'createUser']);
+    Route::post('update-user', [UserController::class, 'updateUser']);
+    Route::delete('delete-user', [UserController::class, 'deleteUser']);
 });
 
