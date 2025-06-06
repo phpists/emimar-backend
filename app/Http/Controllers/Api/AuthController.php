@@ -8,7 +8,6 @@ use App\Http\Requests\LoginRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\UnauthorizedException;
 
 class AuthController extends CoreController
 {
@@ -36,7 +35,7 @@ class AuthController extends CoreController
     public function getUser()
     {
         $user = User::find(Auth::id());
-        return $this->responseSuccess($user);
+        return $this->responseSuccess(['user' => $user]);
     }
 
     /**

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
@@ -12,5 +13,10 @@ Route::group(['prefix' => 'auth'], function () {
         Route::get('user', [AuthController::class, 'getUser']);
         Route::match(['get', 'post'], 'logout', [AuthController::class, 'logout']);
     });
+});
+
+Route::group(['prefix' => 'user', 'middleware' => 'auth:api'], function () {
+    Route::get('get-users', [UserController::class, 'getUsers']);
+    Route::post('create-user', [UserController::class, 'createUser']);
 });
 
