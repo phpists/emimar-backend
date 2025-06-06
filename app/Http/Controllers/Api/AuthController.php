@@ -46,8 +46,11 @@ class AuthController extends CoreController
      */
     public function logout(Request $request)
     {
-        $request->user()->token()->revoke();
-        return $this->responseSuccess(true);
+        $request->user()->currentAccessToken()->delete();
+
+        return $this->responseSuccess([
+            'message' => 'Logged out successfully'
+        ], 200);
     }
 }
 
