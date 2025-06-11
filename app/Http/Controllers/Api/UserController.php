@@ -47,14 +47,17 @@ class UserController extends CoreController
     public function updateUser(UpdateUserRequest $request)
     {
         $data = $request->all();
-        $user = User::where('id', $data['user_id'])
-            ->update([
+        $user = User::find($data['user_id']);
+
+        if ($user) {
+            $user->update([
                 'role_id' => User::CUSTOMER,
                 'full_name' => $data['full_name'],
                 'display_name' => $data['display_name'],
                 'email' => $data['email'],
                 'birth_day' => $data['birth_day'],
             ]);
+        }
 
         return $this->responseSuccess([
             'message' => 'Данные успешно обновлены!',

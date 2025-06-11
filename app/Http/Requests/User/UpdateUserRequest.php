@@ -17,7 +17,7 @@ class UpdateUserRequest extends FormRequest
             'user_id' => 'required',
             'full_name' => 'required',
             'display_name' => 'sometimes',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'required|email|exists:users,email',
             'birth_day' => 'sometimes',
         ];
     }
