@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\GroupController;
+use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -23,8 +24,15 @@ Route::group(['prefix' => 'user', 'middleware' => 'auth:api'], function () {
 });
 
 Route::group(['prefix' => 'group', 'middleware' => 'auth:api'], function () {
+    Route::get('get-groups', [GroupController::class, 'getGroups']);
     Route::post('create-group', [GroupController::class, 'createGroup']);
     Route::post('update-group', [GroupController::class, 'updateGroup']);
     Route::delete('delete-group', [GroupController::class, 'deleteGroup']);
 });
 
+Route::group(['prefix' => 'project', 'middleware' => 'auth:api'], function () {
+    Route::get('get-projects', [ProjectController::class, 'getProjects']);
+    Route::post('create-project', [ProjectController::class, 'createProject']);
+    Route::post('update-project', [ProjectController::class, 'updateProject']);
+    Route::delete('delete-project', [ProjectController::class, 'deleteProject']);
+});

@@ -4,11 +4,25 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\CoreController;
+use App\Http\Resources\Group\GroupsResource;
 use App\Models\Group;
 use Illuminate\Http\Request;
 
 class GroupController extends CoreController
 {
+    /**
+     * @param Request $request
+     * @return mixed
+     */
+    public function getGroups(Request $request)
+    {
+        $data = $request->all();
+        $groups = Group::orderBy('id', 'desc')
+            ->paginate($data['perPage'] ?? 15);
+
+        return $this->responseSuccess(new GroupsResource($groups));
+    }
+
     /**
      * @param Request $request
      * @return mixed
