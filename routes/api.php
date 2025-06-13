@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\FileEntryController;
 use App\Http\Controllers\Api\GroupController;
 use App\Http\Controllers\Api\ProjectController;
 use App\Http\Controllers\Api\UserController;
@@ -36,3 +37,14 @@ Route::group(['prefix' => 'project', 'middleware' => 'auth:api'], function () {
     Route::post('update-project', [ProjectController::class, 'updateProject']);
     Route::delete('delete-project', [ProjectController::class, 'deleteProject']);
 });
+
+Route::group(['prefix' => 'file-entry', 'middleware' => 'auth:api'], function () {
+    Route::get('get-project-tree', [FileEntryController::class, 'getProjectTree']);
+    Route::post('create-folder', [FileEntryController::class, 'createFolder']);
+    Route::post('update-folder', [FileEntryController::class, 'updateFolder']);
+    Route::post('delete-folder', [FileEntryController::class, 'deleteFolder']);
+    Route::post('move-folder', [FileEntryController::class, 'moveFolder']);
+});
+
+
+
