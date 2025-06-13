@@ -14,6 +14,7 @@ class FileEntry extends Model
         'parent_id',
         'project_id',
         'path',
+        'full_name',
         'mime_type',
         'size',
         'pos'

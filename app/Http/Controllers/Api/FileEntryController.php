@@ -103,7 +103,7 @@ class FileEntryController extends CoreController
         $this->deleteChildrenRecursive($folder->id);
         $folder->delete();
 
-        return response()->json(['message' => 'Папка успешно удалена']);
+        return $this->responseSuccess(['message' => 'Папка успешно удалена']);
     }
 
     protected function updateChildrenPaths($parentId, $oldBasePath, $newBasePath)
@@ -159,7 +159,7 @@ class FileEntryController extends CoreController
 
         $this->moveUpdateChildrenPaths($folder->id, $oldPath, $newPath);
 
-        return response()->json(['message' => 'Папка перемещена успешно']);
+        return $this->responseSuccess(['message' => 'Папка перемещена успешно']);
     }
 
     protected function deleteChildrenRecursive($parentId)
@@ -231,4 +231,113 @@ class FileEntryController extends CoreController
 
         return $tree;
     }
+
+    /**
+     * Завантажити файл
+     * @param Request $request
+     * @return mixed
+     */
+    public function uploadFile(Request $request)
+    {
+        $data = $request->validate([
+            'file' => 'required|file',
+            'project_id' => 'required|integer|exists:projects,id',
+            'parent_id' => 'nullable|integer|exists:file_entries,id',
+        ]);
+
+        $file = $request->file('file');
+        $projectId = $data['project_id'];
+        $parentId = $data['parent_id'] ?? null;
+
+        if ($parentId) {
+            $parentFolder = FileEntry::findOrFail($parentId);
+            $path = $parentFolder->path;
+        } else {
+            $path = "projects/$projectId";
+        }
+
+        $filePath = $file->store($path);
+
+        $fullName = basename($filePath);
+
+        $fileEntry = FileEntry::create([
+            'name' => $file->getClientOriginalName(),
+            'full_name' => $fullName,
+            'mime_type' => $file->getMimeType(),
+            'size' => $file->getSize(),
+            'type' => 'file',
+            'parent_id' => $parentId,
+            'project_id' => $projectId,
+            'path' => $filePath,
+        ]);
+
+        return $this->responseSuccess([
+            'message' => 'Файл успешно загружен',
+            'file' => $fileEntry,
+        ]);
+    }
+
+    /**
+     * Перенести файл
+     * @param Request $request
+     * @return mixed
+     */
+    public function moveFile(Request $request)
+    {
+        $data = $request->validate([
+            'file_id' => 'required|integer|exists:file_entries,id',
+            'new_parent_id' => 'nullable|integer|exists:file_entries,id',
+        ]);
+
+        $file = FileEntry::where('type', 'file')->findOrFail($data['file_id']);
+        $newParentId = $data['new_parent_id'] ?? null;
+
+        if ($newParentId) {
+            $newParent = FileEntry::where('type', 'folder')->findOrFail($newParentId);
+            $newPath = $newParent->path . '/' . $file->full_name;
+        } else {
+            $newPath = "projects/{$file->project_id}/" . $file->full_name;
+        }
+
+        if (Storage::exists($file->path)) {
+            Storage::move($file->path, $newPath);
+        } else {
+            return $this->responseSuccess(['error' => 'Файл не найден в файловой системе'], 404);
+        }
+
+        $file->update([
+            'path' => $newPath,
+            'parent_id' => $newParentId,
+        ]);
+
+        return $this->responseSuccess([
+            'message' => 'Файл успешно перемещен',
+            'file' => $file,
+        ]);
+    }
+
+    /**
+     * Видалити файл
+     * @param Request $request
+     * @return mixed
+     */
+    public function deleteFile(Request $request)
+    {
+        $data = $request->validate([
+            'file_id' => 'required|integer|exists:file_entries,id',
+        ]);
+
+        $file = FileEntry::where('type', 'file')->findOrFail($data['file_id']);
+
+        if (Storage::exists($file->path)) {
+            Storage::delete($file->path);
+        }
+
+        $file->delete();
+
+        return response()->json([
+            'message' => 'Файл успешно удален',
+        ]);
+    }
+
 }

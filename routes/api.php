@@ -44,6 +44,10 @@ Route::group(['prefix' => 'file-entry', 'middleware' => 'auth:api'], function ()
     Route::post('update-folder', [FileEntryController::class, 'updateFolder']);
     Route::post('delete-folder', [FileEntryController::class, 'deleteFolder']);
     Route::post('move-folder', [FileEntryController::class, 'moveFolder']);
+
+    Route::post('upload-file', [FileEntryController::class, 'uploadFile']);
+    Route::post('move-file', [FileEntryController::class, 'moveFile']);
+    Route::post('delete-file', [FileEntryController::class, 'deleteFile']);
 });
 
 
