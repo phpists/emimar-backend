@@ -9,6 +9,7 @@ class Project extends Model
     protected $table = 'projects';
     protected $fillable = [
         'title',
+        'rules_type'
     ];
 
     public function users()

@@ -40,6 +40,8 @@ Route::group(['prefix' => 'project', 'middleware' => 'auth:api'], function () {
 
 Route::group(['prefix' => 'file-entry', 'middleware' => 'auth:api'], function () {
     Route::get('get-project-tree', [FileEntryController::class, 'getProjectTree']);
+    Route::get('get-project-file-entry', [FileEntryController::class, 'getProjectFileEntry']);
+
     Route::post('create-folder', [FileEntryController::class, 'createFolder']);
     Route::post('update-folder', [FileEntryController::class, 'updateFolder']);
     Route::post('delete-folder', [FileEntryController::class, 'deleteFolder']);

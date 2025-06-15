@@ -35,6 +35,20 @@ class FileEntry extends Model
         return $this->type === 'folder';
     }
 
+    public function isFile()
+    {
+        return $this->type === 'file';
+    }
+
+    public function getFullNameAttribute($parameter)
+    {
+        if ($this->isFile()){
+            return asset(Storage::disk('public')->url($this->path));
+        }
+
+        return $parameter;
+    }
+
     /**
      * Базова структура проекту
      * @param int $projectId

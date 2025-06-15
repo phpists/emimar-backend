@@ -16,7 +16,16 @@ class FileEntryController extends CoreController
         $projectId = $data['project_id'];
         $tree = $this->buildTree(null, $projectId);
 
-        return response()->json($tree);
+        return $this->responseSuccess(['tree' => $tree]);
+    }
+
+    public function getProjectFileEntry(Request $request)
+    {
+        $data = $request->all();
+        $projectId = $data['project_id'];
+        $list = $this->buildProjectList(null, $projectId);
+
+        return $this->responseSuccess(['list' => $list]);
     }
 
     /**
@@ -230,6 +239,28 @@ class FileEntryController extends CoreController
         }
 
         return $tree;
+    }
+
+    protected function buildProjectList($parentId, $projectId)
+    {
+        $items = FileEntry::where('project_id', $projectId)
+            ->orderBy('created_at')
+            ->get();
+
+        $files = [];
+        $folders = [];
+        foreach ($items as $item) {
+            if ($item->type == 'file') {
+                $files[] = $item;
+            } else {
+                $folders[] = $item;
+            }
+        }
+
+        return [
+            'files' => $files,
+            'folders' => $folders
+        ];
     }
 
     /**

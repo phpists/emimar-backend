@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\CoreController;
+use App\Http\Requests\Project\DeleteProjectRequest;
 use App\Http\Resources\Project\ProjectResource;
 use App\Http\Resources\Project\ProjectsResource;
 use App\Models\FileEntry;
@@ -17,10 +18,19 @@ class ProjectController extends CoreController
     public function getProjects(Request $request)
     {
         $data = $request->all();
-        $projects = Project::orderBy('id', 'desc')
-            ->paginate($data['perPage'] ?? 15);
+        $query = Project::query();
 
-        return $this->responseSuccess(new ProjectsResource($projects));
+        if (isset($data['q'])) {
+            $query->where('title', 'LIKE', '%' . $data['q'] . '%');
+        }
+
+        $query->orderBy('id', 'desc');
+        $projects = $query->paginate($data['perPage'] ?? 15);
+
+        return $this->responseSuccess([
+            'projects' => new ProjectsResource($projects),
+            'count' => $projects->total()
+        ]);
     }
 
     /**
@@ -31,7 +41,8 @@ class ProjectController extends CoreController
     {
         $data = $request->all();
         $project = Project::create([
-            'title' => $data['title']
+            'title' => $data['title'],
+            'rules_type' => $data['rules_type'],
         ]);
 
         if (isset($data['users'])) {
@@ -42,7 +53,7 @@ class ProjectController extends CoreController
             $project->groups()->sync($data['groups']);
         }
 
-        if ($project){
+        if ($project) {
             FileEntry::createProjectStructure($project->id);
         }
 
@@ -67,22 +78,24 @@ class ProjectController extends CoreController
         }
 
         $project->update([
-            'title' => $data['title']
+            'title' => $data['title'],
+            'rules_type' => $data['rules_type'],
         ]);
 
         return $this->responseSuccess(new ProjectResource($project));
     }
 
     /**
-     * @param Request $request
+     * @param DeleteProjectRequest $request
      * @return mixed
      */
-    public function deleteProject(Request $request)
+    public function deleteProject(DeleteProjectRequest $request)
     {
         $data = $request->all();
         $project = Project::find($data['id']);
         $project->users()->detach();
         $project->groups()->detach();
+        $project->delete();
 
         return $this->responseSuccess(['message' => 'Проект успешно удален']);
     }

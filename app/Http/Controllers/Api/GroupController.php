@@ -63,6 +63,7 @@ class GroupController extends CoreController
         $data = $request->all();
         $group = Group::find($data['id']);
         $group->users()->detach();
+        $group->delete();
 
         return $this->responseSuccess(['message' => 'Группа успешно удалена']);
     }

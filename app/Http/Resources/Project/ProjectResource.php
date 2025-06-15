@@ -18,6 +18,7 @@ class ProjectResource extends JsonResource
         $return = [
             'id' => $this->id,
             'title' => $this->title,
+            'rules_type' => $this->rules_type,
             'create_at' => Carbon::parse($this->created_at)->format('d.m.Y'),
             'user' => $this->users,
             'groups' => $this->groups,

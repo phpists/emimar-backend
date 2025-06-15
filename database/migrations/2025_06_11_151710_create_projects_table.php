@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
             $table->string('title');
+            $table->enum('rules_type', ['users', 'groups']);
             $table->timestamps();
         });
     }
