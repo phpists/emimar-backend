@@ -22,8 +22,9 @@ class FileEntryController extends CoreController
     public function getProjectFileEntry(Request $request)
     {
         $data = $request->all();
+        $q = isset($data['q']) ?? '';
         $projectId = $data['project_id'];
-        $list = $this->buildProjectList(null, $projectId);
+        $list = $this->buildProjectList(null, $projectId, $q);
 
         return $this->responseSuccess(['list' => $list]);
     }
@@ -232,6 +233,7 @@ class FileEntryController extends CoreController
             $tree[] = [
                 'id' => $folder->id,
                 'name' => $folder->name,
+                'full_name' => $folder->full_name,
                 'path' => $folder->path,
                 'type' => $folder->type,
                 'children' => $this->buildTree($folder->id, $projectId),
@@ -241,11 +243,17 @@ class FileEntryController extends CoreController
         return $tree;
     }
 
-    protected function buildProjectList($parentId, $projectId)
+    protected function buildProjectList($parentId, $projectId, $q = null)
     {
-        $items = FileEntry::where('project_id', $projectId)
-            ->orderBy('created_at')
-            ->get();
+        $query = FileEntry::query();
+        $query->where('project_id', $projectId);
+
+        if (isset($q)) {
+            $query->where('full_name', 'LIKE', '%' . $q . '%');
+        }
+
+        $query->orderBy('created_at');
+        $items = $query->get();
 
         $files = [];
         $folders = [];

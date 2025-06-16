@@ -58,14 +58,19 @@ class FileEntry extends Model
         $basePath = "projects/{$projectId}";
 
         $structure = [
-            'notes',
-            'drawings',
-            'project',
-            'emimar',
+            'lead' => 'Lead',
+            'lead/notes' => 'Notes',
+            'lead/drawing' => 'Drawing',
+            'lead/drawing/project' => 'Project',
+            'lead/drawing/emimar' => 'Emimar',
+            'lead/suppliers_offer' => "Supplier's offer",
+            'deal' => 'Deal',
+            'deal/commercial_offer' => "Commercial offer",
         ];
 
+
         $folders = [];
-        foreach ($structure as $relativePath) {
+        foreach ($structure as $relativePath => $fullName) {
             $fullPath = "{$basePath}/{$relativePath}";
 
             Storage::makeDirectory($fullPath);
@@ -93,6 +98,7 @@ class FileEntry extends Model
                     'parent_id' => $parentId,
                     'project_id' => $projectId,
                     'path' => $currentPath,
+                    'full_name' => $fullName,
                 ]);
 
                 $parentId = $folder->id;
