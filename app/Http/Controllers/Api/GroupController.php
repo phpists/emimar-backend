@@ -17,8 +17,15 @@ class GroupController extends CoreController
     public function getGroups(Request $request)
     {
         $data = $request->all();
-        $groups = Group::orderBy('id', 'desc')
-            ->paginate($data['perPage'] ?? 15);
+        $builder = Group::query();
+
+        $this->setSorting($builder, [
+            'id' => 'id',
+            'title' => 'title',
+            'created_at' => 'created_at'
+        ]);
+
+        $groups = $builder->paginate($data['perPage'] ?? 15);
 
         return $this->responseSuccess(new GroupsResource($groups));
     }

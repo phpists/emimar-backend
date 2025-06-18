@@ -18,9 +18,16 @@ class UserController extends CoreController
     public function getUsers(Request $request)
     {
         $data = $request->all();
-        $users = User::where('role_id', User::CUSTOMER)
-            ->orderBy('id', 'desc')
-            ->paginate($data['perPage'] ?? 15);
+        $builder = User::where('role_id', User::CUSTOMER);
+        $this->setSorting($builder, [
+            'id' => 'id',
+            'full_name' => 'full_name',
+            'display_name' => 'display_name',
+            'email' => 'email',
+            'created_at' => 'created_at'
+        ]);
+
+        $users = $builder->paginate($data['perPage'] ?? 15);
 
         return $this->responseSuccess(['users' => $users]);
     }
