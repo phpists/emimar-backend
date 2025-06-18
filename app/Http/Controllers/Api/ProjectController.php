@@ -18,14 +18,18 @@ class ProjectController extends CoreController
     public function getProjects(Request $request)
     {
         $data = $request->all();
-        $query = Project::query();
+        $builder = Project::query();
 
         if (isset($data['q'])) {
-            $query->where('title', 'LIKE', '%' . $data['q'] . '%');
+            $builder->where('title', 'LIKE', '%' . $data['q'] . '%');
         }
 
-        $query->orderBy('id', 'desc');
-        $projects = $query->paginate($data['perPage'] ?? 15);
+        $this->setSorting($builder, [
+            'id' => 'id',
+            'title' => 'title',
+        ]);
+
+        $projects = $builder->paginate($data['perPage'] ?? 15);
 
         return $this->responseSuccess([
             'projects' => new ProjectsResource($projects),

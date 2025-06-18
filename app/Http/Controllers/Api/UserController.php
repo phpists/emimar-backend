@@ -21,7 +21,7 @@ class UserController extends CoreController
         $builder = User::where('role_id', User::CUSTOMER);
 
         if (isset($data['q'])) {
-            $builder->where('full_name', 'LIKE', '%' . $data['q'] . '%');
+            $builder->where('display_name', 'LIKE', '%' . $data['q'] . '%');
         }
 
         $this->setSorting($builder, [
@@ -43,7 +43,11 @@ class UserController extends CoreController
     public function createUser(CreateUserRequest $request)
     {
         $data = $request->all();
-        $password = Hash::make('12345678');
+
+        if (empty($data['password'])){
+            $data['password'] = Hash::make('12345678');
+        }
+
         $user = User::create([
             'role_id' => User::CUSTOMER,
             'full_name' => $data['full_name'],
@@ -51,7 +55,7 @@ class UserController extends CoreController
             'email' => $data['email'],
             'birth_day' => $data['birth_day'],
             'phone' => $data['phone'],
-            'password' => $password,
+            'password' => $data['password'],
         ]);
 
         return $this->responseSuccess(['user' => $user]);

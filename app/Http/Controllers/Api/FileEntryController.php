@@ -279,12 +279,12 @@ class FileEntryController extends CoreController
     public function uploadFile(Request $request)
     {
         $data = $request->validate([
-            'file' => 'required|file',
+            'files' => 'required|array',
+            'files.*' => 'file',
             'project_id' => 'required|integer|exists:projects,id',
             'parent_id' => 'nullable|integer|exists:file_entries,id',
         ]);
 
-        $file = $request->file('file');
         $projectId = $data['project_id'];
         $parentId = $data['parent_id'] ?? null;
 
@@ -295,24 +295,29 @@ class FileEntryController extends CoreController
             $path = "projects/$projectId";
         }
 
-        $filePath = $file->store($path);
+        $uploadedFiles = [];
 
-        $fullName = basename($filePath);
+        foreach ($request->file('files') as $file) {
+            $filePath = $file->store($path);
+            $fullName = basename($filePath);
 
-        $fileEntry = FileEntry::create([
-            'name' => $file->getClientOriginalName(),
-            'full_name' => $fullName,
-            'mime_type' => $file->getMimeType(),
-            'size' => $file->getSize(),
-            'type' => 'file',
-            'parent_id' => $parentId,
-            'project_id' => $projectId,
-            'path' => $filePath,
-        ]);
+            $fileEntry = FileEntry::create([
+                'name' => $file->getClientOriginalName(),
+                'full_name' => $fullName,
+                'mime_type' => $file->getMimeType(),
+                'size' => $file->getSize(),
+                'type' => 'file',
+                'parent_id' => $parentId,
+                'project_id' => $projectId,
+                'path' => $filePath,
+            ]);
+
+            $uploadedFiles[] = $fileEntry;
+        }
 
         return $this->responseSuccess([
-            'message' => 'Файл успешно загружен',
-            'file' => $fileEntry,
+            'message' => 'Файли успішно завантажено',
+            'files' => $uploadedFiles,
         ]);
     }
 
