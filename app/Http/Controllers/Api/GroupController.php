@@ -19,6 +19,10 @@ class GroupController extends CoreController
         $data = $request->all();
         $builder = Group::query();
 
+        if (isset($data['q'])) {
+            $builder->where('title', 'LIKE', '%' . $data['q'] . '%');
+        }
+
         $this->setSorting($builder, [
             'id' => 'id',
             'title' => 'title',

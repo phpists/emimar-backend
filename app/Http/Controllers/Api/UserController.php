@@ -19,6 +19,11 @@ class UserController extends CoreController
     {
         $data = $request->all();
         $builder = User::where('role_id', User::CUSTOMER);
+
+        if (isset($data['q'])) {
+            $builder->where('full_name', 'LIKE', '%' . $data['q'] . '%');
+        }
+
         $this->setSorting($builder, [
             'id' => 'id',
             'full_name' => 'full_name',
