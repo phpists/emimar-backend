@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\CoreController;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\ResetPassword;
+use App\Http\Requests\User\ChangePasswordRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -41,10 +42,10 @@ class AuthController extends CoreController
     }
 
     /**
-     * @param Request $request
+     * @param ChangePasswordRequest $request
      * @return mixed
      */
-    public function changePassword(Request $request)
+    public function changePassword(ChangePasswordRequest $request)
     {
         $data = $request->all();
         $user = User::find($data['user_id']);

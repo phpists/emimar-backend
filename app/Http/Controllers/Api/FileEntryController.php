@@ -251,12 +251,12 @@ class FileEntryController extends CoreController
         $query = FileEntry::query();
         $query->where('project_id', $projectId);
 
-        if (!is_null($q) && $q !== '') {
-            $query->where('full_name', 'LIKE', '%' . $q . '%');
+        if (!empty($parentId)) {
+            $query->where('parent_id', $parentId);
         }
 
-        if (isset($parentId)) {
-            $query->where('parent_id', $parentId);
+        if (!empty($q)) {
+            $query->where('name', 'LIKE', '%' . $q . '%');
         }
 
         $query->orderBy('name');
