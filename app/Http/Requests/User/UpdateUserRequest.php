@@ -19,6 +19,7 @@ class UpdateUserRequest extends FormRequest
             'display_name' => 'sometimes',
             'email' => 'required|email|exists:users,email',
             'birth_day' => 'sometimes',
+            'phone' => 'sometimes'
         ];
     }
 }

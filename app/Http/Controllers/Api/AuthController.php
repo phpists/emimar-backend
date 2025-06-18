@@ -41,6 +41,26 @@ class AuthController extends CoreController
     }
 
     /**
+     * @param Request $request
+     * @return mixed
+     */
+    public function changePassword(Request $request)
+    {
+        $data = $request->all();
+        $user = User::find($data['user_id']);
+
+        if ($user) {
+            $user->password = Hash::make($data['password']);
+            $user->update();
+        }
+
+        return $this->responseSuccess([
+            'message' => 'Пароль успешно изменен',
+            'user' => $user
+        ]);
+    }
+
+    /**
      * Розлогінювання
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse

@@ -31,7 +31,7 @@ class GroupController extends CoreController
     {
         $data = $request->all();
         $group = Group::create([
-            'title' => $data['title']
+            'title' => $data['title'],
         ]);
         $group->users()->sync($data['users']);
 
@@ -48,7 +48,7 @@ class GroupController extends CoreController
         $group = Group::find($data['id']);
         $group->users()->sync($data['users']);
         $group->update([
-            'title' => $data['title']
+            'title' => $data['title'],
         ]);
 
         return $this->responseSuccess(['group' => $group]);

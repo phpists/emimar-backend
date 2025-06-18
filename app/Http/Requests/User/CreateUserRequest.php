@@ -18,6 +18,7 @@ class CreateUserRequest extends FormRequest
             'display_name' => 'sometimes',
             'email' => 'required|email|unique:users,email',
             'birth_day' => 'sometimes',
+            'phone' => 'sometimes'
         ];
     }
 }

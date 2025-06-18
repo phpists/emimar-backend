@@ -13,6 +13,7 @@ Route::group(['prefix' => 'auth'], function () {
 
     Route::group(['middleware' => 'auth:api'], function () {
         Route::get('user', [AuthController::class, 'getUser']);
+        Route::post('change-password', [AuthController::class, 'changePassword']);
         Route::match(['get', 'post'], 'logout', [AuthController::class, 'logout']);
     });
 });

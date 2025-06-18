@@ -38,6 +38,7 @@ class UserController extends CoreController
             'display_name' => $data['display_name'],
             'email' => $data['email'],
             'birth_day' => $data['birth_day'],
+            'phone' => $data['phone'],
             'password' => $password,
         ]);
 
@@ -54,8 +55,8 @@ class UserController extends CoreController
                 'role_id' => User::CUSTOMER,
                 'full_name' => $data['full_name'],
                 'display_name' => $data['display_name'],
-                'email' => $data['email'],
                 'birth_day' => $data['birth_day'],
+                'phone' => $data['phone'],
             ]);
         }
 

@@ -53,6 +53,7 @@ class FileEntryController extends CoreController
 
         $folder = FileEntry::create([
             'name' => $folderName,
+            'full_name' => ucfirst($folderName),
             'type' => 'folder',
             'parent_id' => $parentId,
             'project_id' => $projectId,
@@ -86,6 +87,7 @@ class FileEntryController extends CoreController
         }
 
         $folder->name = $newName;
+        $folder->full_name = ucfirst($newName);
         $folder->path = $newPath;
         $folder->save();
 
@@ -245,29 +247,21 @@ class FileEntryController extends CoreController
 
     protected function buildProjectList($parentId, $projectId, $q = null)
     {
-        $query = FileEntry::query();
-        $query->where('project_id', $projectId);
+        $query = FileEntry::query()
+            ->where('project_id', $projectId);
 
-        if (isset($q)) {
+        if (!is_null($q) && $q !== '') {
             $query->where('full_name', 'LIKE', '%' . $q . '%');
         }
 
-        $query->orderBy('created_at');
-        $items = $query->get();
+        $items = $query->orderBy('name')->get();
 
-        $files = [];
-        $folders = [];
-        foreach ($items as $item) {
-            if ($item->type == 'file') {
-                $files[] = $item;
-            } else {
-                $folders[] = $item;
-            }
-        }
+        $files = $items->where('type', 'file')->values();
+        $folders = $items->where('type', '!=', 'file')->values();
 
         return [
             'files' => $files,
-            'folders' => $folders
+            'folders' => $folders,
         ];
     }
 
