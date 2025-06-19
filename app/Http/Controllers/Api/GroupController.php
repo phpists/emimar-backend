@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\CoreController;
 use App\Http\Resources\Group\GroupsResource;
+use App\Http\Resources\Traits\HasFullInfoFlag;
 use App\Models\Group;
 use Illuminate\Http\Request;
 
@@ -31,7 +32,10 @@ class GroupController extends CoreController
 
         $groups = $builder->paginate($data['perPage'] ?? 15);
 
-        return $this->responseSuccess(new GroupsResource($groups));
+        return $this->responseSuccess([
+            'groups' => new GroupsResource($groups),
+            'count' => $groups->total()
+        ]);
     }
 
     /**

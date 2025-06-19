@@ -8,17 +8,49 @@ use App\Http\Requests\Project\DeleteProjectRequest;
 use App\Http\Resources\Project\ProjectResource;
 use App\Http\Resources\Project\ProjectsResource;
 use App\Models\FileEntry;
-use App\Models\Group;
 use App\Models\Project;
+use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\DB;
 
 class ProjectController extends CoreController
 {
     public function getProjects(Request $request)
     {
         $data = $request->all();
+        $user = auth()->user();
+
         $builder = Project::query();
+
+        if ($user->role_id == User::CUSTOMER) {
+            $userId = auth()->id();
+            $groupIds = DB::table('groups_users')
+                ->where('user_id', $userId)
+                ->pluck('group_id')
+                ->toArray();
+
+            $builder->where(function ($query) use ($userId, $groupIds) {
+                $query->where(function ($q) use ($userId) {
+                    $q->where('rules_type', 'users')
+                        ->whereIn('id', function ($sub) use ($userId) {
+                            $sub->select('project_id')
+                                ->from('projects_users')
+                                ->where('user_id', $userId);
+                        });
+                });
+
+                if (!empty($groupIds)) {
+                    $query->orWhere(function ($q) use ($groupIds) {
+                        $q->where('rules_type', 'groups')
+                            ->whereIn('id', function ($sub) use ($groupIds) {
+                                $sub->select('project_id')
+                                    ->from('groups_projects')
+                                    ->whereIn('group_id', $groupIds);
+                            });
+                    });
+                }
+            });
+        }
 
         if (isset($data['q'])) {
             $builder->where('title', 'LIKE', '%' . $data['q'] . '%');
@@ -32,7 +64,7 @@ class ProjectController extends CoreController
         $projects = $builder->paginate($data['perPage'] ?? 15);
 
         return $this->responseSuccess([
-            'projects' => new ProjectsResource($projects),
+            'projects' => new ProjectsResource($projects, false),
             'count' => $projects->total()
         ]);
     }
@@ -44,6 +76,14 @@ class ProjectController extends CoreController
     public function createProject(Request $request)
     {
         $data = $request->all();
+        $user = auth()->user();
+
+        if ($user->role_id == User::CUSTOMER){
+            return $this->responseSuccess([
+                'message' => 'Запрещенные права доступа на создание проектов'
+            ]);
+        }
+
         $project = Project::create([
             'title' => $data['title'],
             'rules_type' => $data['rules_type'],
@@ -71,6 +111,14 @@ class ProjectController extends CoreController
     public function updateProject(Request $request)
     {
         $data = $request->all();
+        $user = auth()->user();
+
+        if ($user->role_id == User::CUSTOMER){
+            return $this->responseSuccess([
+                'message' => 'Запрещенные права доступа на редактирование проектов'
+            ]);
+        }
+
         $project = Project::find($data['id']);
 
         if (isset($data['users'])) {
@@ -96,6 +144,14 @@ class ProjectController extends CoreController
     public function deleteProject(DeleteProjectRequest $request)
     {
         $data = $request->all();
+        $user = auth()->user();
+
+        if ($user->role_id == User::CUSTOMER){
+            return $this->responseSuccess([
+                'message' => 'Запрещенные права доступа на удаление проектов'
+            ]);
+        }
+
         $project = Project::find($data['id']);
         $project->users()->detach();
         $project->groups()->detach();

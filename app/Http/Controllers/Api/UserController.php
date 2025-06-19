@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\CoreController;
 use App\Http\Requests\User\CreateUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
+use App\Http\Resources\Traits\HasFullInfoFlag;
+use App\Http\Resources\User\UsersResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -34,7 +36,10 @@ class UserController extends CoreController
 
         $users = $builder->paginate($data['perPage'] ?? 15);
 
-        return $this->responseSuccess(['users' => $users]);
+        return $this->responseSuccess([
+            'users' => new UsersResource($users),
+            'count' => $users->total()
+        ]);
     }
 
     /**
