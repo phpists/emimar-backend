@@ -298,7 +298,7 @@ class FileEntryController extends CoreController
         $uploadedFiles = [];
 
         foreach ($request->file('files') as $file) {
-            $filePath = $file->store($path);
+            $filePath = $file->store($path, 'public');
             $fullName = basename($filePath);
 
             $fileEntry = FileEntry::create([
@@ -316,7 +316,7 @@ class FileEntryController extends CoreController
         }
 
         return $this->responseSuccess([
-            'message' => 'Файли успішно завантажено',
+            'message' => 'Файлы успешно загружены',
             'files' => $uploadedFiles,
         ]);
     }

@@ -68,7 +68,6 @@ class FileEntry extends Model
             'deal/commercial_offer' => "Commercial offer",
         ];
 
-
         $folders = [];
         foreach ($structure as $relativePath => $fullName) {
             $fullPath = "{$basePath}/{$relativePath}";

@@ -68,7 +68,6 @@ class UserController extends CoreController
 
         if ($user) {
             $user->update([
-                'role_id' => User::CUSTOMER,
                 'full_name' => $data['full_name'],
                 'display_name' => $data['display_name'],
                 'birth_day' => $data['birth_day'],
