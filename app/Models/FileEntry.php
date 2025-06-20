@@ -105,5 +105,51 @@ class FileEntry extends Model
         }
     }
 
+    public function scopeOnlyAccessibleTo($query, $userId, $groupIds)
+    {
+        return $query->where(function ($q) use ($userId, $groupIds) {
+            // Прямі заборони (is_visible = false)
+            $q->whereNotIn('id', function ($sub) use ($userId, $groupIds) {
+                $sub->select('file_entry_id')
+                    ->from('file_entries_permissions')
+                    ->where(function ($w) use ($userId, $groupIds) {
+                        $w->where('user_id', $userId);
+
+                        if (!empty($groupIds)) {
+                            $w->orWhereIn('group_id', $groupIds);
+                        }
+                    })
+                    ->where('is_visible', false);
+            });
+
+            // А доступ по проекту — як і раніше:
+            $q->whereIn('project_id', function ($sub) use ($userId, $groupIds) {
+                $sub->select('id')
+                    ->from('projects')
+                    ->where(function ($w) use ($userId, $groupIds) {
+                        $w->where(function ($q1) use ($userId) {
+                            $q1->where('rules_type', 'users')
+                                ->whereIn('id', function ($sub2) use ($userId) {
+                                    $sub2->select('project_id')
+                                        ->from('projects_users')
+                                        ->where('user_id', $userId);
+                                });
+                        });
+
+                        if (!empty($groupIds)) {
+                            $w->orWhere(function ($q2) use ($groupIds) {
+                                $q2->where('rules_type', 'groups')
+                                    ->whereIn('id', function ($sub3) use ($groupIds) {
+                                        $sub3->select('project_id')
+                                            ->from('groups_projects')
+                                            ->whereIn('group_id', $groupIds);
+                                    });
+                            });
+                        }
+                    });
+            });
+        });
+    }
+
 
 }

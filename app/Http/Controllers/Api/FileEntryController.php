@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\CoreController;
 use App\Models\FileEntry;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class FileEntryController extends CoreController
@@ -175,6 +176,38 @@ class FileEntryController extends CoreController
         return $this->responseSuccess(['message' => 'Папка перемещена успешно']);
     }
 
+    /**
+     * Переміщення папки на рівень вверх
+     * @param Request $request
+     * @return mixed
+     */
+    public function moveLevelupFolder(Request $request)
+    {
+        $data = $request->validate([
+            'folder_id' => 'required|integer|exists:file_entries,id',
+        ]);
+
+        $folder = FileEntry::where('type', 'folder')->findOrFail($data['folder_id']);
+
+        // Якщо вже в корені — нічого не робимо
+        if (is_null($folder->parent_id)) {
+            return response()->json(['message' => 'Folder is already in the root.'], 200);
+        }
+
+        // Отримати батьківську папку
+        $parentFolder = FileEntry::find($folder->parent_id);
+
+        if (!$parentFolder) {
+            return response()->json(['message' => 'Parent folder not found.'], 404);
+        }
+
+        // Перемістити на рівень вище — встановити parent_id = parent_id батьківської папки
+        $folder->parent_id = $parentFolder->parent_id;
+        $folder->save();
+
+        return response()->json(['message' => 'Folder moved one level up.'], 200);
+    }
+
     protected function deleteChildrenRecursive($parentId)
     {
         $children = FileEntry::where('parent_id', $parentId)->get();
@@ -224,7 +257,15 @@ class FileEntryController extends CoreController
 
     protected function buildTree($parentId, $projectId)
     {
-        $folders = FileEntry::where('parent_id', $parentId)
+        $userId = auth()->id();
+
+        $groupIds = DB::table('groups_users')
+            ->where('user_id', $userId)
+            ->pluck('group_id')
+            ->toArray();
+
+        $folders = FileEntry::onlyAccessibleTo($userId, $groupIds)
+            ->where('parent_id', $parentId)
             ->where('project_id', $projectId)
             ->where('type', 'folder')
             ->orderBy('name')
@@ -248,13 +289,23 @@ class FileEntryController extends CoreController
 
     protected function buildProjectList($projectId, $parentId = null, $q = null)
     {
-        $query = FileEntry::query();
-        $query->where('project_id', $projectId);
+        $userId = auth()->id();
+
+        $groupIds = DB::table('groups_users')
+            ->where('user_id', $userId)
+            ->pluck('group_id')
+            ->toArray();
+
+        $query = FileEntry::onlyAccessibleTo($userId, $groupIds)
+            ->where('project_id', $projectId);
 
         if (!empty($parentId)) {
-            $query->where('parent_id', $parentId);
+            $folderIds = $this->getAllFolderIds($parentId);
+
+            $query->whereIn('parent_id', $folderIds);
         }
 
+        // Пошук по назві
         if (!empty($q)) {
             $query->where('name', 'LIKE', '%' . $q . '%');
         }
@@ -270,6 +321,24 @@ class FileEntryController extends CoreController
             'folders' => $folders,
         ];
     }
+
+    protected function getAllFolderIds($parentId)
+    {
+        $ids = [$parentId];
+
+        $childFolders = FileEntry::where('parent_id', $parentId)
+            ->where('type', 'folder')
+            ->pluck('id');
+
+        foreach ($childFolders as $childId) {
+            $ids = array_merge($ids, $this->getAllFolderIds($childId));
+        }
+
+        return $ids;
+    }
+
+
+
 
     /**
      * Завантажити файл
@@ -382,6 +451,27 @@ class FileEntryController extends CoreController
         return response()->json([
             'message' => 'Файл успешно удален',
         ]);
+    }
+
+    /**
+     * Скачати файл
+     * @param Request $request
+     * @return \Symfony\Component\HttpFoundation\StreamedResponse
+     */
+    public function downloadFile(Request $request)
+    {
+        $data = $request->validate([
+            'file_id' => 'required|integer|exists:file_entries,id',
+        ]);
+
+        $file = FileEntry::where('type', 'file')->findOrFail($data['file_id']);
+
+        return Storage::disk('public')->download($file->path, $file->name);
+    }
+
+    public function changeAccess(Request $request)
+    {
+        $data = $request->all();
     }
 
 }
